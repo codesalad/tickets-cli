@@ -1,4 +1,4 @@
-module serviceheroes/tickets-cli
+module github.com/codesalad/tickets-cli
 
 go 1.25.1
 

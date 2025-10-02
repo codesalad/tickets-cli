@@ -57,6 +57,7 @@
     ```
 
 ## Usage
+```
   -u int
     	Update a ticket by its index (default -1)
   -assignee string
@@ -81,4 +82,4 @@
   -username string
     	Username (default "wing@serviceheroes.com")
   -v	Enable verbose output
-
+```

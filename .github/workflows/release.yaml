@@ -10,6 +10,8 @@ jobs:
   build:
     # Run the build on the latest Ubuntu runner
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     # Use a matrix to build for multiple architectures (Linux, macOS, Windows)
     strategy:

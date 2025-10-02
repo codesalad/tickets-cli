@@ -31,10 +31,12 @@ type Ticket struct {
 	Description string `json:"description,omitempty"`
 	Assignee string `json:"assignee,omitempty"`
 	Status string `json:"sprintStatus,omitempty"`
+	TicketStatus string `json:"status,omitempty"`
 	Estimated interface{} `json:"estimated,omitempty"`
 	Author string `json:"author,omitempty"`
 	Sprint string `json:"sprint,omitempty"`
 	ChangedBy string `json:"changedBy,omitempty"`
+	Archived interface{} `json:"archived,omitempty"`
 }
 
 func (t Ticket) String() string {
@@ -50,6 +52,13 @@ func (t Ticket) String() string {
 		people = fmt.Sprintf("(%s   %s)", author, assignee)
 	}
 
+	var archiveMark string
+	if t.Archived != nil && t.Archived.(bool) {
+		archiveMark = "(archived)"
+	} else {
+		archiveMark = ""
+	}
+
 	const start = "\033]8;;"
     const middle = "\033\\"
     const end = "\033]8;;\033\\"
@@ -58,8 +67,8 @@ func (t Ticket) String() string {
 
 	link := fmt.Sprintf("%s%s%s%s%s",start,url,middle,t.Name,end)
 
-	return fmt.Sprintf("#%d %s [%s] %s", 
-		t.Index, link, t.Status, people)
+	return fmt.Sprintf("#%d %s [%s] %s %s", 
+		t.Index, link, t.Status, people, archiveMark)
 }
 
 func (t Ticket) vString() string {
@@ -79,11 +88,17 @@ func (t Ticket) vString() string {
     const end = "\033]8;;\033\\"
 	var url = os.Getenv("ROOT_URL") +  "/app/Ticket-Service-V2/ticketsingle?ticketId="+t.Id
 
+	var archiveMark string
+	if t.Archived != nil && t.Archived.(bool) {
+		archiveMark = "(archived)"
+	} else {
+		archiveMark = ""
+	}
 
-	link := fmt.Sprintf("%s%s%s%s%s%s%s",start,url,middle,t.Name,end)
+	link := fmt.Sprintf("%s%s%s%s%s",start,url,middle,t.Name,end)
 
-	return fmt.Sprintf("----------------------\n#%d %s (%vh) [%s] %s\n----------------------\n%s\n", 
-		t.Index, link, t.Estimated, t.Status, people, t.Description)
+	return fmt.Sprintf("----------------------\n#%d %s (%vh) [%s] %s %s\n----------------------\n%s\n", 
+		t.Index, link, t.Estimated, t.Status, people, archiveMark, t.Description)
 }
 
 
@@ -147,7 +162,7 @@ func getTickets(sprint string, assignee string, sprintStatus string) []Ticket {
 		assignee = "~" + assignee
 	}
 
-	queries := fmt.Sprintf("?sprint=%s&assignee=%s&sprintStatus=%s&pagination=0", sprint, assignee, sprintStatus)
+	queries := fmt.Sprintf("?archived=false&sprint=%s&assignee=%s&sprintStatus=%s&pagination=0", sprint, assignee, sprintStatus)
 	queries = strings.ReplaceAll(queries, " ", "%20")
 	
 	r, _ := requests.Get(ROOT_URL + "/synergy/data/tickets" + queries, headers)
@@ -190,13 +205,17 @@ func printTickets(sprint string, assignee string, status string, verbose bool) {
 
 }
 
-func createTicket(sprint string, assignee string, status string, name string, description string) {
+func createTicket(user string, sprint string, assignee string, status string, name string, description string) {
 	newTicket := Ticket{
 		Name: name,
 		Description: description,
 		Assignee: assignee,
 		Status: status,
+		TicketStatus: "Backlog",
 		Sprint: sprint,
+		Author: user,
+		ChangedBy: user,
+		Archived: "false",
 	}
 
 	fmt.Println("Creating ticket:", newTicket)
@@ -281,13 +300,18 @@ func main() {
 			fmt.Println("Error: --name is required to create a ticket.")
 			return
 		}
-		createTicket(*currentSprint, *assignee, *status, *name, *description)
+		createTicket(*user, *currentSprint, *assignee, *status, *name, *description)
 	} else if *del != -1 {
 		if *update != -1 {
 			fmt.Println("Error: --delete and --update cannot be used together.")
 			return
 		}
-		deleteTicket(*del)
+		//deleteTicket(*del) // Disabled for safety
+		patchTicket := Ticket{
+			Archived: "true",
+		}
+		updateTicket(*del, patchTicket)
+
 	} else if *update != -1 {
 		patchTicket := Ticket{}
 		if *name != "" {
@@ -305,6 +329,8 @@ func main() {
 		if *currentSprint != "" {
 			patchTicket.Sprint = *currentSprint
 		}
+		patchTicket.ChangedBy = *user
+
 		updateTicket(*update, patchTicket)
 	} else {
 		if *status == "" {	

@@ -1,0 +1,51 @@
+name: Build and Release CLI
+
+on:
+  # This workflow runs whenever you create a new Git tag (e.g., v1.0.0)
+  push:
+    tags:
+      - 'v[0-9]+.*'
+
+jobs:
+  build:
+    # Run the build on the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    # Use a matrix to build for multiple architectures (Linux, macOS, Windows)
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21' # Adjust to your project's Go version
+
+      - name: Build binary
+        # Set environment variables for cross-compilation
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          # The binary name will be 'tickets'
+          GO_BINARY_NAME=tickets
+         
+          # Compile the main package
+          go build -o $GO_BINARY_NAME
+          
+          # Rename the artifact for clarity (e.g., tickets-linux-amd64)
+          mv $GO_BINARY_NAME tickets-${{ matrix.goos }}-${{ matrix.goarch }}|| '' }}
+          
+      - name: Upload binary to release
+        # This action is used to package the built file and attach it to the release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: tickets-*
+          draft: true # Optional: Draft the release first so you can review it
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

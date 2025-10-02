@@ -1,4 +1,4 @@
-module serviceheroes/tickets
+module serviceheroes/tickets-cli
 
 go 1.25.1
 

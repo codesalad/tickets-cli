@@ -6,7 +6,7 @@ import ( "fmt"
 	"encoding/json"
 	"time"
 	"flag"
-	requests "serviceheroes/tickets/requests"
+	requests "serviceheroes/tickets-cli/requests"
  	"github.com/joho/godotenv"
 )
 

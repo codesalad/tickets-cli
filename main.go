@@ -263,12 +263,12 @@ func main() {
 	}
 
 	currentSprint := flag.String("sprint", getCurrentSprint(), "Current Sprint Name" )
-	user := flag.String("username", os.Getenv(TICKETS_USERNAME), "Username")
+	user := flag.String("username", os.Getenv("TICKETS_USERNAME"), "Username")
 	create := flag.Bool("create", false, "Create a ticket")
 
 	del := flag.Int("delete", -1, "Delete a ticket by its index")
 	update := flag.Int("update", -1, "Update a ticket by its index")
-	assignee := flag.String("assignee", os.Getenv(TICKETS_USERNAME), "Assignee to view or create ticket for")
+	assignee := flag.String("assignee", os.Getenv("TICKETS_USERNAME"), "Assignee to view or create ticket for")
 	status := flag.String("status", "", "Sprint status to filter tickets (Backlog, Next Week, To do, In Progress, Done)")
 
 	verbose := flag.Bool("v", false, "Enable verbose output")

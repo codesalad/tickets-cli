@@ -126,6 +126,7 @@ func getSprints() []Sprint {
 func getCurrentSprint() string {
 	sprints := getSprints()
 	currentTime := time.Now()
+	currentDate := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, currentTime.Location())
 
 	for _, sprint := range sprints {
 		shortFormat := "2006-01-02"
@@ -141,7 +142,7 @@ func getCurrentSprint() string {
 			continue
 		}
 
-		if currentTime.After(startTime) && currentTime.Before(endTime) {
+		if (currentDate.After(startTime) || currentDate.Equal(startTime)) && (currentDate.Before(endTime) || currentDate.Equal(endTime)) {
 			return sprint.Name
 		}
 	}
